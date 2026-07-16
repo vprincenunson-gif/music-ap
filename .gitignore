@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local user data (saved per device)
+/data/user.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

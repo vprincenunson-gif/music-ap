@@ -10,14 +10,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // If already logged in, go home
-    const saved = localStorage.getItem('muse-user');
-    if (saved) {
-      router.push('/');
-    }
+    // If already logged in (user file exists), go home
+    fetch('/api/user')
+      .then(r => r.json())
+      .then(data => { if (data.user) router.push('/'); })
+      .catch(() => {});
   }, [router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
     const ageNum = parseInt(age);
@@ -31,8 +31,17 @@ export default function LoginPage() {
       return;
     }
 
-    localStorage.setItem('muse-user', JSON.stringify({ name: trimmedName, age: ageNum }));
-    router.push('/');
+    const res = await fetch('/api/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: trimmedName, age: ageNum }),
+    });
+
+    if (res.ok) {
+      router.push('/');
+    } else {
+      setError('Failed to save. Try again.');
+    }
   };
 
   return (

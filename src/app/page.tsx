@@ -29,18 +29,17 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in
-    const saved = localStorage.getItem('muse-user');
-    if (!saved) {
-      router.push('/login');
-      return;
-    }
-    try {
-      const user = JSON.parse(saved);
-      setUserName(user.name);
-    } catch {
-      router.push('/login');
-    }
+    // Check if user is logged in (file-based)
+    fetch('/api/user')
+      .then(r => r.json())
+      .then(data => {
+        if (!data.user) {
+          router.push('/login');
+          return;
+        }
+        setUserName(data.user.name);
+      })
+      .catch(() => router.push('/login'));
 
     searchMock('trending music').then((songs) => {
       setTrendingSongs(songs);
