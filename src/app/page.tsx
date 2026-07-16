@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Song, Genre } from '@/types';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useQueue } from '@/hooks/useQueue';
@@ -22,15 +23,30 @@ export default function HomePage() {
   const [trendingSongs, setTrendingSongs] = useState<Song[]>([]);
   const [visible, setVisible] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [userName, setUserName] = useState<string | null>(null);
   const { playSong } = usePlayer();
   const recent = useLibraryStore((s) => s.recentSongs);
+  const router = useRouter();
 
   useEffect(() => {
+    // Check if user is logged in
+    const saved = localStorage.getItem('muse-user');
+    if (!saved) {
+      router.push('/login');
+      return;
+    }
+    try {
+      const user = JSON.parse(saved);
+      setUserName(user.name);
+    } catch {
+      router.push('/login');
+    }
+
     searchMock('trending music').then((songs) => {
       setTrendingSongs(songs);
       setTimeout(() => setVisible(true), 100);
     });
-  }, []);
+  }, [router]);
 
   // Update clock every second
   useEffect(() => {
@@ -51,9 +67,11 @@ export default function HomePage() {
 
   return (
     <div className="p-6 pb-24 page-enter">
-      {/* Hero section with live clock */}
+      {/* Hero section with live clock & personalized greeting */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">{greeting}</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">
+          {greeting}, <span className="text-indigo-400">{userName || 'there'}</span>
+        </h1>
         <p className="text-4xl font-bold text-indigo-400 font-mono tracking-wider">
           {timeStr}
         </p>
