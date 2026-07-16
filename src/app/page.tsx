@@ -21,6 +21,7 @@ const genres: Genre[] = [
 export default function HomePage() {
   const [trendingSongs, setTrendingSongs] = useState<Song[]>([]);
   const [visible, setVisible] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const { playSong } = usePlayer();
   const recent = useLibraryStore((s) => s.recentSongs);
 
@@ -31,12 +32,31 @@ export default function HomePage() {
     });
   }, []);
 
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Greeting based on time of day
+  const hour = currentTime.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  // Format time nicely
+  const timeStr = currentTime.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
   return (
     <div className="p-6 pb-24 page-enter">
-      {/* Hero section */}
+      {/* Hero section with live clock */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Good evening</h1>
-        <p className="text-zinc-400">Discover new music</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{greeting}</h1>
+        <p className="text-4xl font-bold text-indigo-400 font-mono tracking-wider">
+          {timeStr}
+        </p>
       </div>
 
       {/* Trending */}
