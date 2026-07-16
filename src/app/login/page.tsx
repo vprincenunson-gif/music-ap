@@ -31,6 +31,7 @@ export default function LoginPage() {
       return;
     }
 
+    // Try API first (file-based), fallback to localStorage
     const res = await fetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -40,7 +41,9 @@ export default function LoginPage() {
     if (res.ok) {
       router.push('/');
     } else {
-      setError('Failed to save. Try again.');
+      // Fallback: save in localStorage
+      localStorage.setItem('muse-user', JSON.stringify({ name: trimmedName, age: ageNum }));
+      router.push('/');
     }
   };
 

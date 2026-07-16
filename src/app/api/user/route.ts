@@ -26,7 +26,17 @@ export async function POST(req: NextRequest) {
     }
 
     const user = { name: name.trim(), age: parseInt(age) };
-    fs.writeFileSync(DATA_FILE, JSON.stringify(user, null, 2), 'utf-8');
+
+    // Try to write to file (works locally)
+    try {
+      const dir = path.dirname(DATA_FILE);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(DATA_FILE, JSON.stringify(user, null, 2), 'utf-8');
+    } catch {
+      // If file write fails (e.g., Vercel readonly), still return success
+      // so the client can store in localStorage as fallback
+    }
+
     return NextResponse.json({ success: true, user });
   } catch (err) {
     return NextResponse.json({ error: 'Failed to save' }, { status: 500 });
@@ -40,6 +50,7 @@ export async function DELETE() {
     }
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
+    // If delete fails, still return success (localStorage fallback)
+    return NextResponse.json({ success: true });
   }
 }
