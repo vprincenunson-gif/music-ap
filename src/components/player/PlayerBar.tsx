@@ -89,9 +89,9 @@ export function PlayerBar() {
             </button>
           </div>
           <div className="flex items-center gap-2 w-full max-w-md">
-            <span className="text-xs text-zinc-500 w-10 text-right">{formatTime(progress)}</span>
+            <span className="text-sm text-zinc-400 w-12 text-right font-mono">{formatTime(progress)}</span>
             <Slider value={progress} max={duration || 100} onChange={seek} size="sm" className="flex-1" />
-            <span className="text-xs text-zinc-500 w-10">{formatTime(duration)}</span>
+            <span className="text-sm text-zinc-400 w-12 font-mono">{formatTime(duration)}</span>
           </div>
         </div>
 
