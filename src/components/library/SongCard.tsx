@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { Song } from '@/types';
 import { useQueue } from '@/hooks/useQueue';
 import { useLibraryStore } from '@/stores/libraryStore';
+import { normalizeCoverUrl } from '@/lib/utils';
 import { Play, Heart, Plus } from 'lucide-react';
 
 interface SongCardProps {
@@ -11,10 +13,17 @@ interface SongCardProps {
   showActions?: boolean;
 }
 
-export function SongCard({ song, onPlay, showActions = true }: SongCardProps) {
-  const { addToQueue } = useQueue();
-  const { saveSong, isSongSaved, removeSong } = useLibraryStore();
-  const saved = isSongSaved(song.id);
+const COLORS = ['#6366f1','#ec4899','#14b8a6','#f59e0b','#8b5cf6','#06b6d4','#10b981','#f43f5e'];
+
+function getColor(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  return COLORS[Math.abs(hash) % COLORS.length];
+}
+
+export function SongCard({ song, onPlay }: SongCardProps) {
+  const [imgError, setImgError] = useState(false);
+  const color = getColor(song.id);
 
   return (
     <div
@@ -22,17 +31,24 @@ export function SongCard({ song, onPlay, showActions = true }: SongCardProps) {
       onClick={() => onPlay(song)}
     >
       <div className="relative mb-3">
-        <img
-          src={song.coverUrl}
-          alt={song.title}
-          className="w-full aspect-square rounded-lg object-cover"
-        />
+        {imgError ? (
+          <div
+            className="w-full aspect-square rounded-lg flex items-center justify-center text-white text-3xl font-bold"
+            style={{ backgroundColor: color }}
+          >
+            {song.title.charAt(0).toUpperCase()}
+          </div>
+        ) : (
+          <img
+            src={normalizeCoverUrl(song.coverUrl, song.title)}
+            alt={song.title}
+            className="w-full aspect-square rounded-lg object-cover"
+            onError={() => setImgError(true)}
+          />
+        )}
         <button
           className="absolute bottom-2 right-2 w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-105 hover:bg-indigo-400"
-          onClick={(e) => {
-            e.stopPropagation();
-            onPlay(song);
-          }}
+          onClick={(e) => { e.stopPropagation(); onPlay(song); }}
         >
           <Play size={18} className="text-white ml-0.5" />
         </button>

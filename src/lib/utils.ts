@@ -25,6 +25,22 @@ export function truncate(str: string, maxLen: number): string {
   return str.slice(0, maxLen - 3) + '...';
 }
 
+/**
+ * Normalize cover image URLs.
+ * - Raw Spotify CDN hashes (ab67616d...) → full CDN URL
+ * - Empty/undefined → gradient placeholder
+ */
+export function normalizeCoverUrl(url: string | undefined | null, title = '?'): string {
+  if (!url) {
+    return `https://placehold.co/400x400/6366f1/ffffff?text=${encodeURIComponent(title.charAt(0))}`;
+  }
+  // Raw Spotify album art hash (16+ hex chars starting with ab67616d)
+  if (/^ab67616d[a-f0-9]{24,}$/i.test(url)) {
+    return `https://i.scdn.co/image/${url}`;
+  }
+  return url;
+}
+
 export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
   delay: number
