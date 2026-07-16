@@ -20,15 +20,19 @@ const genres: Genre[] = [
 
 export default function HomePage() {
   const [trendingSongs, setTrendingSongs] = useState<Song[]>([]);
+  const [visible, setVisible] = useState(false);
   const { playSong } = usePlayer();
   const recent = useLibraryStore((s) => s.recentSongs);
 
   useEffect(() => {
-    searchMock('trending music').then(setTrendingSongs);
+    searchMock('trending music').then((songs) => {
+      setTrendingSongs(songs);
+      setTimeout(() => setVisible(true), 100);
+    });
   }, []);
 
   return (
-    <div className="p-6 pb-24">
+    <div className="p-6 pb-24 page-enter">
       {/* Hero section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Good evening</h1>
@@ -42,8 +46,10 @@ export default function HomePage() {
           Trending Now
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {trendingSongs.map((song) => (
-            <SongCard key={song.id} song={song} onPlay={playSong} />
+          {trendingSongs.map((song, i) => (
+            <div key={song.id} style={{ animationDelay: `${i * 0.05}s` }} className={`${visible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              <SongCard song={song} onPlay={playSong} />
+            </div>
           ))}
         </div>
       </section>
@@ -55,10 +61,11 @@ export default function HomePage() {
           Browse by Genre
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          {genres.map((genre) => (
+          {genres.map((genre, i) => (
             <div
               key={genre.id}
-              className={`bg-gradient-to-br ${genre.color} p-4 rounded-xl cursor-pointer hover:scale-105 transition-transform`}
+              style={{ animationDelay: `${i * 0.08}s` }}
+              className={`bg-gradient-to-br ${genre.color} p-4 rounded-xl cursor-pointer hover:scale-105 transition-transform ${visible ? 'animate-fade-in-up' : 'opacity-0'}`}
             >
               <span className="text-2xl">{genre.icon}</span>
               <p className="text-white font-medium text-sm mt-2">{genre.name}</p>
@@ -75,8 +82,10 @@ export default function HomePage() {
             Recently Played
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {recent.map((song) => (
-              <SongCard key={song.id} song={song} onPlay={playSong} />
+            {recent.map((song, i) => (
+              <div key={song.id} style={{ animationDelay: `${i * 0.05}s` }} className={`${visible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+                <SongCard key={song.id} song={song} onPlay={playSong} />
+              </div>
             ))}
           </div>
         </section>

@@ -1,115 +1,116 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { usePlayerStore } from '@/stores/playerStore';
 import { useQueueStore } from '@/stores/queueStore';
 import { useLibraryStore } from '@/stores/libraryStore';
-import { audioEngine } from '@/lib/player';
 import { Song, EQSettings } from '@/types';
+import {
+  playVideo,
+  pauseVideo,
+  seekVideo,
+  setVolume,
+  getCurrentTime,
+  getDuration,
+} from '@/lib/youtube';
+
+const PROGRESS_INTERVAL = 500;
 
 export function usePlayer() {
   const store = usePlayerStore();
   const queue = useQueueStore();
   const library = useLibraryStore();
-  const initRef = useRef(false);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Initialize audio engine once
-  useEffect(() => {
-    if (!initRef.current) {
-      audioEngine.init();
-      initRef.current = true;
-
-      audioEngine.onTimeUpdate((time) => {
+  const startPolling = useCallback(() => {
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      try {
+        const time = getCurrentTime();
+        const dur = getDuration();
+        if (dur > 0) store.setDuration(dur);
         store.setProgress(time);
-      });
+      } catch {}
+    }, PROGRESS_INTERVAL);
+  }, [store]);
 
-      audioEngine.onEnded(() => {
-        const nextSong = queue.next();
-        if (nextSong) {
-          playSong(nextSong);
-        } else {
-          store.setIsPlaying(false);
-          store.setProgress(0);
-        }
-      });
+  const stopPolling = useCallback(() => {
+    if (progressRef.current) {
+      clearInterval(progressRef.current);
+      progressRef.current = null;
     }
   }, []);
 
   // Sync volume
   useEffect(() => {
-    audioEngine.setVolume(store.isMuted ? 0 : store.volume);
+    setVolume(store.isMuted ? 0 : store.volume);
   }, [store.volume, store.isMuted]);
 
-  // Sync EQ
-  useEffect(() => {
-    audioEngine.setEq(
-      store.eqSettings.bass,
-      store.eqSettings.mid,
-      store.eqSettings.treble
-    );
-  }, [store.eqSettings]);
+  // Cleanup
+  useEffect(() => () => stopPolling(), [stopPolling]);
 
-  const playSong = (song: Song) => {
+  const playSong = useCallback((song: Song) => {
     store.setCurrentSong(song);
     store.setIsPlaying(true);
     library.addToRecent(song);
 
-    if (song.streamUrl) {
-      audioEngine.load(song.streamUrl);
-      audioEngine.play();
+    if (song.source === 'youtube' && song.sourceId) {
+      playVideo(song.sourceId, {
+        onEnded: () => {
+          const next = queue.next();
+          if (next) playSong(next);
+          else { store.setIsPlaying(false); stopPolling(); }
+        },
+      });
+      startPolling();
     }
-  };
+  }, [store, library, queue, startPolling, stopPolling]);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     if (!store.currentSong) {
       const song = queue.getCurrentSong();
-      if (song) {
-        playSong(song);
-      }
+      if (song) playSong(song);
       return;
     }
     if (store.isPlaying) {
-      audioEngine.pause();
-    } else {
-      audioEngine.play();
+      pauseVideo();
+      stopPolling();
+    } else if (store.currentSong.source === 'youtube' && store.currentSong.sourceId) {
+      playVideo(store.currentSong.sourceId);
+      startPolling();
     }
     store.togglePlay();
-  };
+  }, [store, queue, playSong, startPolling, stopPolling]);
 
-  const playNext = () => {
+  const playNext = useCallback(() => {
     const song = queue.next();
-    if (song) {
-      playSong(song);
-    } else {
-      store.reset();
-    }
-  };
+    if (song) playSong(song);
+    else { store.reset(); stopPolling(); }
+  }, [queue, playSong, store, stopPolling]);
 
-  const playPrevious = () => {
+  const playPrevious = useCallback(() => {
     const song = queue.previous();
-    if (song) {
-      playSong(song);
-    }
-  };
+    if (song) playSong(song);
+  }, [queue, playSong]);
 
-  const seek = (time: number) => {
-    audioEngine.seek(time);
+  const seek = useCallback((time: number) => {
+    seekVideo(time);
     store.setProgress(time);
-  };
+  }, [store]);
 
-  const setVolume = (volume: number) => {
-    store.setVolume(volume);
-    audioEngine.setVolume(volume);
-  };
+  const changeVolume = useCallback((vol: number) => {
+    store.setVolume(vol);
+    setVolume(vol);
+  }, [store]);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     store.toggleMute();
-    audioEngine.setVolume(store.isMuted ? 0 : store.volume);
-  };
+    setVolume(store.isMuted ? 0 : store.volume);
+  }, [store]);
 
-  const setEq = (settings: Partial<EQSettings>) => {
+  const setEq = useCallback((settings: Partial<EQSettings>) => {
     store.setEqSettings(settings);
-  };
+  }, [store]);
 
   return {
     playSong,
@@ -117,7 +118,7 @@ export function usePlayer() {
     playNext,
     playPrevious,
     seek,
-    setVolume,
+    setVolume: changeVolume,
     toggleMute,
     setEq,
     isPlaying: store.isPlaying,

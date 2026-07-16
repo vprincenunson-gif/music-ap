@@ -27,7 +27,7 @@ export function SongCard({ song, onPlay }: SongCardProps) {
 
   return (
     <div
-      className="group bg-zinc-800/40 hover:bg-zinc-800 rounded-xl p-3 transition-all cursor-pointer"
+      className="group bg-zinc-800/40 hover:bg-zinc-800 rounded-xl p-3 transition-all cursor-pointer card-hover"
       onClick={() => onPlay(song)}
     >
       <div className="relative mb-3">
@@ -39,12 +39,14 @@ export function SongCard({ song, onPlay }: SongCardProps) {
             {song.title.charAt(0).toUpperCase()}
           </div>
         ) : (
-          <img
-            src={normalizeCoverUrl(song.coverUrl, song.title)}
-            alt={song.title}
-            className="w-full aspect-square rounded-lg object-cover"
-            onError={() => setImgError(true)}
-          />
+          <div className={`w-full aspect-square rounded-lg overflow-hidden ${true ? '' : ''}`}>
+            <img
+              src={normalizeCoverUrl(song.coverUrl, song.title)}
+              alt={song.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              onError={() => setImgError(true)}
+            />
+          </div>
         )}
         <button
           className="absolute bottom-2 right-2 w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-105 hover:bg-indigo-400"
