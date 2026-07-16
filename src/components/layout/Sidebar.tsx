@@ -33,24 +33,13 @@ export function Sidebar() {
   const [user, setUser] = useState<UserData | null>(null);
 
   useEffect(() => {
-    // Try file-based API first, then localStorage fallback
-    fetch('/api/user')
-      .then(r => r.json())
-      .then(data => {
-        if (data.user) setUser(data.user);
-        else {
-          const saved = localStorage.getItem('muse-user');
-          if (saved) try { setUser(JSON.parse(saved)); } catch {}
-        }
-      })
-      .catch(() => {
-        const saved = localStorage.getItem('muse-user');
-        if (saved) try { setUser(JSON.parse(saved)); } catch {}
-      });
+    const saved = localStorage.getItem('muse-user');
+    if (saved) {
+      try { setUser(JSON.parse(saved)); } catch {}
+    }
   }, []);
 
-  const handleLogout = async () => {
-    await fetch('/api/user', { method: 'DELETE' }).catch(() => {});
+  const handleLogout = () => {
     localStorage.removeItem('muse-user');
     setUser(null);
     router.push('/login');

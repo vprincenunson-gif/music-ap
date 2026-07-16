@@ -10,14 +10,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // If already logged in (user file exists), go home
-    fetch('/api/user')
-      .then(r => r.json())
-      .then(data => { if (data.user) router.push('/'); })
-      .catch(() => {});
+    // If already logged in, go home
+    const saved = localStorage.getItem('muse-user');
+    if (saved) {
+      router.push('/');
+    }
   }, [router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
     const ageNum = parseInt(age);
@@ -31,20 +31,9 @@ export default function LoginPage() {
       return;
     }
 
-    // Try API first (file-based), fallback to localStorage
-    const res = await fetch('/api/user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: trimmedName, age: ageNum }),
-    });
-
-    if (res.ok) {
-      router.push('/');
-    } else {
-      // Fallback: save in localStorage
-      localStorage.setItem('muse-user', JSON.stringify({ name: trimmedName, age: ageNum }));
-      router.push('/');
-    }
+    localStorage.setItem('muse-user', JSON.stringify({ name: trimmedName, age: ageNum }));
+    router.push('/');
+  };
   };
 
   return (

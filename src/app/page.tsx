@@ -29,31 +29,17 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Try file-based API first, fallback to localStorage
-    fetch('/api/user')
-      .then(r => r.json())
-      .then(data => {
-        if (data.user) {
-          setUserName(data.user.name);
-        } else {
-          // Fallback: check localStorage
-          const saved = localStorage.getItem('muse-user');
-          if (saved) {
-            try { setUserName(JSON.parse(saved).name); } catch { router.push('/login'); }
-          } else {
-            router.push('/login');
-          }
-        }
-      })
-      .catch(() => {
-        // API failed (Vercel) → check localStorage
-        const saved = localStorage.getItem('muse-user');
-        if (saved) {
-          try { setUserName(JSON.parse(saved).name); } catch { router.push('/login'); }
-        } else {
-          router.push('/login');
-        }
-      });
+    const saved = localStorage.getItem('muse-user');
+    if (!saved) {
+      router.push('/login');
+      return;
+    }
+    try {
+      const user = JSON.parse(saved);
+      setUserName(user.name);
+    } catch {
+      router.push('/login');
+    }
 
     searchMock('trending music').then((songs) => {
       setTrendingSongs(songs);
