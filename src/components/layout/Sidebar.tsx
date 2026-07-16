@@ -1,7 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Home,
   Search,
@@ -9,7 +10,8 @@ import {
   Music,
   Radio,
   Mic2,
-  Download,
+  LogOut,
+  User,
 } from 'lucide-react';
 
 const navItems = [
@@ -20,8 +22,28 @@ const navItems = [
   { href: '/jam', label: 'Jam Sessions', icon: Radio },
 ];
 
+interface UserData {
+  name: string;
+  age: number;
+}
+
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('muse-user');
+    if (saved) {
+      try { setUser(JSON.parse(saved)); } catch {}
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('muse-user');
+    setUser(null);
+    router.push('/login');
+  };
 
   return (
     <aside className="w-56 bg-zinc-950 border-r border-zinc-800 flex flex-col h-full">
@@ -63,6 +85,28 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* User profile */}
+      {user && (
+        <div className="p-3 border-t border-zinc-800">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{user.name}</p>
+              <p className="text-xs text-zinc-500">Age: {user.age}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2 w-full text-sm text-zinc-400 hover:text-red-400 transition-colors rounded-lg"
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 }
