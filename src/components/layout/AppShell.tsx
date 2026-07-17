@@ -1,14 +1,20 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { useEffect, ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { PlayerBar } from '@/components/player/PlayerBar';
+import { loadYouTubeAPI } from '@/lib/youtube';
 
 interface AppShellProps {
   children: ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
+  // Pre-load YouTube API on app start so playback is instant
+  useEffect(() => {
+    loadYouTubeAPI().catch(() => {});
+  }, []);
+
   return (
     <div className="h-screen flex flex-col bg-black">
       <div className="flex flex-1 overflow-hidden">
