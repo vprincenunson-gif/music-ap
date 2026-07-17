@@ -37,7 +37,8 @@ export function PlayerBar() {
 
   return (
     <>
-      <div className="h-20 bg-zinc-900 border-t border-zinc-800 flex items-center px-4 gap-4">
+      {/* Desktop player bar */}
+      <div className="hidden md:flex h-20 bg-zinc-900 border-t border-zinc-800 items-center px-4 gap-4">
         {/* Song info with spinning album art */}
         <div className="flex items-center gap-3 w-72">
           <div className="relative shrink-0">
@@ -109,6 +110,34 @@ export function PlayerBar() {
           <div className="w-24">
             <Slider value={isMuted ? 0 : volume * 100} max={100} onChange={(v) => setVolume(v / 100)} size="sm" />
           </div>
+        </div>
+      </div>
+
+      {/* Mobile mini player - shown when a song is playing */}
+      <div className="md:hidden fixed bottom-14 left-0 right-0 z-40 bg-zinc-900 border-t border-zinc-800 px-3 py-2">
+        <div className="flex items-center gap-3">
+          {imgError ? (
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ backgroundColor: getColor(currentSong.id) }}>
+              {currentSong.title.charAt(0).toUpperCase()}
+            </div>
+          ) : (
+            <div className={`w-9 h-9 rounded-full overflow-hidden ${isPlaying ? 'animate-spin-slow' : ''} shrink-0 ring-1 ring-indigo-500/30`}>
+              <img src={normalizeCoverUrl(currentSong.coverUrl, currentSong.title)} alt={currentSong.title} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate">{currentSong.title}</p>
+            <p className="text-xs text-zinc-400 truncate">{currentSong.artist}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={togglePlay} className="w-8 h-8 flex items-center justify-center bg-white text-black rounded-full">
+              {isPlaying ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+            </button>
+          </div>
+        </div>
+        {/* Mini progress bar */}
+        <div className="mt-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${duration > 0 ? (progress / duration) * 100 : 0}%` }} />
         </div>
       </div>
 

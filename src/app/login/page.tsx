@@ -32,10 +32,10 @@ export default function LoginPage() {
         {['♫', '♪', '♩', '♬', '🎵', '🎶'].map((note, i) => (
           <span
             key={i}
-            className="absolute text-white/10 text-4xl animate-float"
+            className="absolute text-white/10 text-2xl md:text-4xl animate-float"
             style={{
-              left: `${15 + i * 14}%`,
-              top: `${20 + (i % 4) * 20}%`,
+              left: `${10 + i * 16}%`,
+              top: `${15 + (i % 4) * 22}%`,
               animationDelay: `${i * 1.5}s`,
               animationDuration: `${4 + (i % 3) * 2}s`,
             }}
@@ -54,7 +54,7 @@ export default function LoginPage() {
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-indigo-500/30 animate-bounce-in group hover:scale-110 transition-transform duration-300">
             <Music size={36} className="text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2 animate-slide-up">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 animate-slide-up">
             Welcome to <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Muse</span>
           </h1>
           <p className="text-zinc-400 animate-slide-up" style={{ animationDelay: '0.1s' }}>
